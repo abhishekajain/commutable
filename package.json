@@ -1,0 +1,22 @@
+{
+  "name": "bart",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BART Node Project",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "author": "Abhishek Jain",
+  "license": "ISC",
+  "dependencies": {
+    "console-stamp": "^0.2.2",
+    "deferred": "^0.7.5",
+    "google-places": "0.0.2",
+    "googleplaces": "^0.6.0",
+    "json-query": "^2.1.0",
+    "request": "^2.73.0",
+    "request-promise": "^3.0.0",
+    "xml2js": "^0.4.17"
+  }
+}
