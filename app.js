@@ -193,7 +193,7 @@ function getBartStations(){
 
 getBartStations();
 
-//getWitAi();
+getWitAi('Show me BART of West Dublin');
 
 function getGBartStation(latitude, longitude){
 
@@ -216,14 +216,14 @@ function getGBartStation(latitude, longitude){
 	
 }
 
-function getWitAi(){
+function getWitAi(query){
 
 	var options = {
 		method : "GET",
 		uri : "/message",
 		baseUrl : "https://api.wit.ai/",	
-		qs : {	"v": "20160809",
-				q: "Hello BOT"},	 
+		qs : {	v: "20160815",
+				q: query},	 
 		headers: { "Accept": "application/json",
 				   "Authorization" :"Bearer PYIAP2SX4J4VEUNKXQDESBUONNAMNM4M"	
 				 } // request headers 
@@ -231,27 +231,9 @@ function getWitAi(){
 	console.log('getWitAi options:'+JSON.stringify(options));
 	var rp = requestPromise(options);
 	rp.then(function(data){
-		console.log('getWitAi data::'+data);							
-	});	
-	
-}
-
-function getGNLA(){
-
-	var options = {
-		method : "GET",
-		uri : "/$discovery/rest",
-		baseUrl : "https://language.googleapis.com",	
-		qs : {	"version": "v1beta1",
-				q: "Hello BOT"},	 
-		headers: { "Accept": "application/json",
-				   "Authorization" :"Bearer PYIAP2SX4J4VEUNKXQDESBUONNAMNM4M"	
-				 } // request headers 
-	};
-	console.log('getWitAi options:'+JSON.stringify(options));
-	var rp = requestPromise(options);
-	rp.then(function(data){
-		console.log('getWitAi data::'+data);							
+		console.log('getWitAi data::'+ data);
+		var witData = JSON.parse(data);
+		//console.log('getWitAi data::'+ witData.entities);							
 	});	
 	
 }
