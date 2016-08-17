@@ -142,6 +142,19 @@ var server = http.createServer(function (req, res) {
 			res.write('{"sucess":"Hello World 3"}');
 			res.end();
 		}
+	}else if(req.method === 'POST'){
+        console.log("POST");
+        var body = '';
+        req.on('data', function (data) {
+            body += data;
+            console.log("Partial body: " + body);
+        });
+        req.on('end', function () {
+            console.log("Body: " + body);
+        });
+		
+        res.write('{"sucess":"Hello World 4 POST"}');
+        res.end();	
 	}else {        
         res.write('{"sucess":"Hello World 3"}');
         res.end();
