@@ -151,6 +151,7 @@ var server = http.createServer(function (req, res) {
         });
         req.on('end', function () {
             console.log("Body: " + body);
+			getWitAi(body);
         });
 		
         res.write('{"sucess":"Hello World 4 POST"}');
