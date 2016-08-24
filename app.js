@@ -23,26 +23,26 @@ var bartCMD = { "cmds":[
 ]};
 
 function findBARTStationN(inputname){
-	console.log('findBARTStationN:::'+inputname);	
+	//console.log('findBARTStationN:::'+inputname);	
 	var barStnObjN = jsonQuery(['station[nameS~/'+inputname+'/i]'], {
 		data: bartStnsJSON,
 		allowRegexp : true
 	});	
 	
-	console.log('findBARTStationN:::'+JSON.stringify(barStnObjN.value));
+	//console.log('findBARTStationN:::'+JSON.stringify(barStnObjN.value));
 	
 	return barStnObjN.value;
 }
 
 function findBARTStationL(lat, lng){
 	
-	console.log('findBARTStationL:::'+lat + lng);
+	//console.log('findBARTStationL:::'+lat + lng);
 	
 	var barStnObjL = jsonQuery(['station[gtfs_latitudeS=? & gtfs_longitudeS = ?]', lat, lng], {
 		data: bartStnsJSON
 	});	
 	
-	console.log('findBARTStationL:::'+JSON.stringify(barStnObjL.value));
+	//console.log('findBARTStationL:::'+JSON.stringify(barStnObjL.value));
 	
 	return barStnObjL.value;
 }
@@ -52,7 +52,7 @@ function createObject(queryURI){
 	
 	var d = deferred();
 	
-	console.log('createObject 1 :'+JSON.stringify(queryURI));
+	//console.log('createObject 1 :'+JSON.stringify(queryURI));
 	
 	var objectCmd = jsonQuery(['cmds[value=?]', queryURI.cmd], {
 		data: bartCMD
@@ -61,13 +61,13 @@ function createObject(queryURI){
 	if(queryURI.origLat){
 		var rp = getGBartStation(queryURI.origLat, queryURI.origLng);
 		rp.then(function(data){
-			console.log('getBartStation data::'+data);	
+			//console.log('getBartStation data::'+data);	
 			var gPData = JSON.parse(data);
 			//console.log('getBartStation data::'+gPData.results[0].name);	
 			//console.log('getBartStation data::'+gPData.results[0].vicinity);	
 			//console.log('getBartStation data::'+gPData.results[0].geometry.location);	
 			var nameS =  gPData.results[0].name;
-			console.log('getBartStation data::'+nameS);	
+			//console.log('getBartStation data::'+nameS);	
 			nameS = nameS.replace(/ station/gi,""); 			
 			console.log('getBartStation data::'+nameS);			
 			var bartStation = findBARTStationN(nameS);
@@ -77,7 +77,7 @@ function createObject(queryURI){
 				var bartStation = findBARTStationN(queryURI.dest);
 				objectCmd.value.qs.dest = bartStation.abbr[0];
 			}
-			console.log('createObject 2.1:'+JSON.stringify(objectCmd.value));	
+			//console.log('createObject 2.1:'+JSON.stringify(objectCmd.value));	
 			d.resolve(objectCmd.value);							
 		});
 	}else if(queryURI.orig){
@@ -87,10 +87,10 @@ function createObject(queryURI){
 			var bartStation = findBARTStationN(queryURI.dest);
 			objectCmd.value.qs.dest = bartStation.abbr[0];
 		}
-		console.log('createObject 2.2:'+JSON.stringify(objectCmd.value));		
+		//console.log('createObject 2.2:'+JSON.stringify(objectCmd.value));		
 		d.resolve(objectCmd.value);			
 	}else{
-		console.log('createObject 2.3:'+JSON.stringify(objectCmd.value));		
+		//console.log('createObject 2.3:'+JSON.stringify(objectCmd.value));		
 		d.resolve(objectCmd.value);			
 	}
 	
@@ -110,58 +110,102 @@ var server = http.createServer(function (req, res) {
 		//var queryURL = JSON.stringify(getURL.query);
 		//console.log('query:::'+JSON.stringify(getURL.query));
 		if(getURL.query.cmd){	
-			var objectCreatedD = createObject(getURL.query);		
-			objectCreatedD.then(function(objectInput){				
-				var rp = getBart(objectInput);
-					console.log(" called getBart -->");
-
-				rp.then(function(data){
-					console.log("createServer 0 :"+data);
-					console.log("rp.then method -->");
-					//res.write('Hello World 1 \n');					
-					var promiseJSON = xmlToJSON(data);
-					promiseJSON.then(function(result){
-						res.write(result);
-						console.log("done...");
-						res.end();	
-					}).catch(function(err){
-						console.log('Error::'+err);
-						res.write('{"sucess":"Hello World 2"}');
-						res.end();							
-					});						  
-				}).catch(function(error){
-					console.log('Error::'+error);
-					res.write('{"sucess":"Hello World 2"}');
-					res.end();				  
-				});				
-			}).catch(function(error){
-				res.write('{"sucess":"Hello World 2"}');
-				res.end();
-			});		
+			callUsingQuery(query, res);		
 		}else{
 			res.write('{"sucess":"Hello World 3"}');
 			res.end();
 		}
 	}else if(req.method === 'POST'){
-        console.log("POST");
+        //console.log("POST");
         var body = '';
         req.on('data', function (data) {
             body += data;
-            console.log("Partial body: " + body);
+            //console.log("Partial body: " + body);
         });
         req.on('end', function () {
             console.log("Body: " + body);
-			getWitAi(body);
-        });
-		
-        res.write('{"sucess":"Hello World 4 POST"}');
-        res.end();	
+			var rp = getWitAi(body);
+			rp.then(function(data){
+				//console.log('getWitAi data::'+ data);
+				var witData = JSON.parse(data);
+				//available intents : shareLocation, getGreeting, planBART, getAlerts, getBART
+				if(witData.entities.intent){
+					intentFunctions[witData.entities.intent[0].value](witData.entities.location, res);
+				}else{
+					res.write('{"not sucess":"Hello World 4 POST"}');
+					res.end();
+				}
+				//console.log('getWitAi data::'+ witData.entities);							
+			});			
+        });			
 	}else {        
         res.write('{"sucess":"Hello World 3"}');
         res.end();
     } 
 });
 
+var intentFunctions = { }; // better would be to have module create an object
+intentFunctions.getGreeting = function(location, res)
+{
+	res.write('{"sucess":"Hello User. I am here to plan your BART trip."}');
+	res.end();
+};
+intentFunctions.planBART = function(location, res)
+{
+    console.log('planBART');
+	res.end();
+};
+intentFunctions.getAlerts = function(location, res)
+{
+	var query = {
+		"cmd":"bsa"
+	};
+	callUsingQuery(query, res);
+};
+intentFunctions.getBART = function(location, res)
+{
+	var query = {
+		"cmd":"etd",
+		"orig":location[0].value
+	};
+	callUsingQuery(query, res);
+};
+intentFunctions.shareLocation = function(location, res)
+{
+	res.write('{"sucess":"Hello User, can you please share your location."}');
+	res.end();
+};
+
+function callUsingQuery(query, res){
+	var objectCreatedD = createObject(query);		
+	objectCreatedD.then(function(objectInput){				
+		var rp = getBart(objectInput);
+		//console.log(" called getBart -->");
+
+		rp.then(function(data){
+			console.log("createServer 0 :"+data);
+			//console.log("rp.then method -->");
+			//res.write('Hello World 1 \n');					
+			var promiseJSON = xmlToJSON(data);
+			promiseJSON.then(function(result){
+				res.write(result);
+				//console.log("done...");
+				res.end();	
+			}).catch(function(err){
+				console.log('Error::'+err);
+				res.write('{"sucess":"Hello World 2"}');
+				res.end();							
+			});						  
+		}).catch(function(error){
+			console.log('Error::'+error);
+			res.write('{"sucess":"Hello World 2"}');
+			res.end();				  
+		});				
+	}).catch(function(error){
+		res.write('{"sucess":"Hello World 2"}');
+		res.end();
+	});
+}
 // Listen on port 3000, IP defaults to 127.0.0.1
 server.listen(port);
 // Console will print the message
@@ -176,7 +220,7 @@ function getBart(objectCMD){
 		qs : objectCMD.qs,	 
 		headers: { "Accept": "application/xml" } // request headers 
 	};
-	console.log('getBart options:'+JSON.stringify(options));
+	//console.log('getBart options:'+JSON.stringify(options));
 	return requestPromise(options);
 	
 }
@@ -189,7 +233,7 @@ function getBartStations(){
 			//console.log("getBartStations::"+data);
 			var promiseJSON = xmlToJSON(data);
 			promiseJSON.then(function(result){
-				console.log("getBartStations 0 :"+result);
+				//console.log("getBartStations 0 :"+result);
 				bartStnsJSON = (JSON.parse(result)).root.stations[0];	
 				bartStnsJSON.station.forEach(function(value){
 					//console.log("getBartStations: 2 :"+value);
@@ -207,7 +251,7 @@ function getBartStations(){
 
 getBartStations();
 
-getWitAi('Show me BART of West Dublin');
+//getWitAi('Show me BART of West Dublin');
 
 function getGBartStation(latitude, longitude){
 
@@ -229,7 +273,9 @@ function getGBartStation(latitude, longitude){
 	return requestPromise(options);
 	
 }
-
+/**
+available intents : shareLocation, getGreeting, planBART, getAlerts, getBART
+*/
 function getWitAi(query){
 
 	var options = {
@@ -242,13 +288,20 @@ function getWitAi(query){
 				   "Authorization" :"Bearer PYIAP2SX4J4VEUNKXQDESBUONNAMNM4M"	
 				 } // request headers 
 	};
-	console.log('getWitAi options:'+JSON.stringify(options));
+	//console.log('getWitAi options:'+JSON.stringify(options));
 	var rp = requestPromise(options);
-	rp.then(function(data){
-		console.log('getWitAi data::'+ data);
+	/**rp.then(function(data){
+		//console.log('getWitAi data::'+ data);
 		var witData = JSON.parse(data);
+		if(witData.entities.location){
+			
+		}
+		if(witData.entities.intent){
+			
+		}
 		//console.log('getWitAi data::'+ witData.entities);							
-	});	
+	});	**/
+	return rp;
 	
 }
 
