@@ -131,7 +131,10 @@ var server = http.createServer(function (req, res) {
 				//available intents : shareLocation, getGreeting, planBART, getAlerts, getBART
 				if(witData.entities.intent){
 					intentFunctions[witData.entities.intent[0].value](witData.entities.location, res);
-				}else{
+				}else if(witData.entities.location){
+					intentFunctions["getBART"](witData.entities.location, res);
+				}					
+				else{
 					res.write('{"not sucess":"Hello World 4 POST"}');
 					res.end();
 				}
