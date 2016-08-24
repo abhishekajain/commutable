@@ -101,50 +101,60 @@ var server = http.createServer(function (req, res) {
 	console.log('createServer -->'+req);
 	// Send the HTTP header: HTTP Status: 200 : OK , Content Type: text/plain
 	res.writeHead(200, {'Content-Type': 'application/json'});
-	if (req.method === 'GET') {
-		//console.log('GET 	:::'+bartStnsJSON);		
-		//console.log('GET URL:::'+req.url);
-		//console.log('GET URL:::'+JSON.stringify(url.parse(req.url, true)));
-		var getURL = url.parse(req.url, true);
-		//console.log('query:::'+JSON.stringify(getURL.query));
-		//var queryURL = JSON.stringify(getURL.query);
-		//console.log('query:::'+JSON.stringify(getURL.query));
-		if(getURL.query.cmd){	
-			callUsingQuery(query, res);		
-		}else{
+	try{
+		if (req.method === 'GET') {
+			//console.log('GET 	:::'+bartStnsJSON);		
+			//console.log('GET URL:::'+req.url);
+			//console.log('GET URL:::'+JSON.stringify(url.parse(req.url, true)));
+			var getURL = url.parse(req.url, true);
+			//console.log('query:::'+JSON.stringify(getURL.query));
+			//var queryURL = JSON.stringify(getURL.query);
+			//console.log('query:::'+JSON.stringify(getURL.query));
+			if(getURL.query.cmd){	
+				callUsingQuery(query, res);		
+			}else{
+				res.write('{"sucess":"Hello World 3"}');
+				res.end();
+			}
+		}else if(req.method === 'POST'){
+			//console.log("POST");
+			var body = '';
+			req.on('data', function (data) {
+				body += data;
+				//console.log("Partial body: " + body);
+			});
+			req.on('end', function () {
+				console.log("Body: " + body);
+				var rp = getWitAi(body);
+				rp.then(function(data){
+					//console.log('getWitAi data::'+ data);
+					var witData = JSON.parse(data);
+					//available intents : shareLocation, getGreeting, planBART, getAlerts, getBART
+					if(witData.entities.intent){
+						intentFunctions[witData.entities.intent[0].value](witData.entities.location, res);
+					}else if(witData.entities.location){
+						intentFunctions["getBART"](witData.entities.location, res);
+					}					
+					else{
+						res.write('{"not sucess":"Hello World 4 POST"}');
+						res.end();
+					}
+					//console.log('getWitAi data::'+ witData.entities);							
+				}).catch(function(error){
+					console.log(error);
+					res.write('{"not sucess":"Hello World 5 POST"}');
+					res.end();
+				});			
+			});			
+		}else {        
 			res.write('{"sucess":"Hello World 3"}');
 			res.end();
-		}
-	}else if(req.method === 'POST'){
-        //console.log("POST");
-        var body = '';
-        req.on('data', function (data) {
-            body += data;
-            //console.log("Partial body: " + body);
-        });
-        req.on('end', function () {
-            console.log("Body: " + body);
-			var rp = getWitAi(body);
-			rp.then(function(data){
-				//console.log('getWitAi data::'+ data);
-				var witData = JSON.parse(data);
-				//available intents : shareLocation, getGreeting, planBART, getAlerts, getBART
-				if(witData.entities.intent){
-					intentFunctions[witData.entities.intent[0].value](witData.entities.location, res);
-				}else if(witData.entities.location){
-					intentFunctions["getBART"](witData.entities.location, res);
-				}					
-				else{
-					res.write('{"not sucess":"Hello World 4 POST"}');
-					res.end();
-				}
-				//console.log('getWitAi data::'+ witData.entities);							
-			});			
-        });			
-	}else {        
-        res.write('{"sucess":"Hello World 3"}');
-        res.end();
-    } 
+		} 
+	}catch(error){
+		console.log(error);
+		res.write('{"not sucess":"Hello World 6"}');
+		res.end();		
+	}
 });
 
 var intentFunctions = { }; // better would be to have module create an object
