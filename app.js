@@ -183,7 +183,7 @@ function callUsingQuery(query, res){
 		//console.log(" called getBart -->");
 
 		rp.then(function(data){
-			console.log("createServer 0 :"+data);
+			//console.log("createServer 0 :"+data);
 			//console.log("rp.then method -->");
 			//res.write('Hello World 1 \n');					
 			var promiseJSON = xmlToJSON(data);
