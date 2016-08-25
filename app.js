@@ -227,6 +227,9 @@ function callUsingQuery(query, res, cmd){
 				}else{
 					concatStr = 'Please send BART station Name.';
 				}
+				if(concatStr.length > 256){
+					concatStr = concatStr.substring(0, 255);
+				}
 				res.write(concatStr)
 				//console.log("done...");
 				res.end();	
