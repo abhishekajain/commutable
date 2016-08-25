@@ -100,7 +100,9 @@ function createObject(queryURI){
 var server = http.createServer(function (req, res) {
 	console.log('createServer -->'+req);
 	// Send the HTTP header: HTTP Status: 200 : OK , Content Type: text/plain
-	res.writeHead(200, {'Content-Type': 'application/json'});
+	//res.writeHead(200, {'Content-Type': 'application/json'});
+	res.writeHead(200, {'Content-Type': 'text/plain'});
+
 	try{
 		if (req.method === 'GET') {
 			//console.log('GET 	:::'+bartStnsJSON);		
@@ -165,7 +167,7 @@ var server = http.createServer(function (req, res) {
 var intentFunctions = { }; // better would be to have module create an object
 intentFunctions.getGreeting = function(location, res)
 {
-	res.write('{"sucess":"Hello User. I am here to plan your BART trip."}');
+	res.write('Hello User. I am here to plan your BART trip.');
 	res.end();
 };
 intentFunctions.planBART = function(location, res)
@@ -190,7 +192,7 @@ intentFunctions.getBART = function(location, res)
 };
 intentFunctions.shareLocation = function(location, res)
 {
-	res.write('{"sucess":"Hello User, can you please share your location."}');
+	res.write('Hello User, can you please share your location.');
 	res.end();
 };
 
@@ -206,7 +208,18 @@ function callUsingQuery(query, res){
 			//res.write('Hello World 1 \n');					
 			var promiseJSON = xmlToJSON(data);
 			promiseJSON.then(function(result){
-				res.write(result);
+				
+				var station = JSON.parse(result).root.station[0];
+				//console.log(station);
+				var concatStr = 'BART from '+station.name[0]+':';
+				station.etd.forEach(function(etdValue){
+					concatStr = concatStr+'\nTo: '+etdValue.destination[0]+ ' in ';
+					etdValue.estimate.forEach(function(estimateValue){
+						concatStr = concatStr+estimateValue.minutes[0]+' mins ';
+					});
+				});
+				res.write(concatStr)
+				console.log(JSON.stringify(station[0]));				
 				//console.log("done...");
 				res.end();	
 			}).catch(function(err){
