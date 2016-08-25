@@ -113,7 +113,7 @@ var server = http.createServer(function (req, res) {
 			//var queryURL = JSON.stringify(getURL.query);
 			//console.log('query:::'+JSON.stringify(getURL.query));
 			if(getURL.query.cmd){	
-				callUsingQuery(query, res);		
+				callUsingQuery(getURL.query, res, getURL.query.cmd);		
 			}else{
 				res.write('{"sucess":"Hello World 3"}');
 				res.end();
@@ -180,7 +180,7 @@ intentFunctions.getAlerts = function(location, res)
 	var query = {
 		"cmd":"bsa"
 	};
-	callUsingQuery(query, res);
+	callUsingQuery(query, res, 'bsa');
 };
 intentFunctions.getBART = function(location, res)
 {
@@ -188,7 +188,7 @@ intentFunctions.getBART = function(location, res)
 		"cmd":"etd",
 		"orig":location[0].value
 	};
-	callUsingQuery(query, res);
+	callUsingQuery(query, res, 'etd');
 };
 intentFunctions.shareLocation = function(location, res)
 {
@@ -196,7 +196,7 @@ intentFunctions.shareLocation = function(location, res)
 	res.end();
 };
 
-function callUsingQuery(query, res){
+function callUsingQuery(query, res, cmd){
 	var objectCreatedD = createObject(query);		
 	objectCreatedD.then(function(objectInput){				
 		var rp = getBart(objectInput);
@@ -208,18 +208,26 @@ function callUsingQuery(query, res){
 			//res.write('Hello World 1 \n');					
 			var promiseJSON = xmlToJSON(data);
 			promiseJSON.then(function(result){
-				
-				var station = JSON.parse(result).root.station[0];
-				//console.log(station);
-				var concatStr = 'BART from '+station.name[0]+':';
-				station.etd.forEach(function(etdValue){
-					concatStr = concatStr+'\nTo: '+etdValue.destination[0]+ ' in ';
-					etdValue.estimate.forEach(function(estimateValue){
-						concatStr = concatStr+estimateValue.minutes[0]+' mins ';
+				console.log(result);
+				var concatStr = '';
+				if(cmd === 'bsa'){
+					concatStr = 'BART has follwing Alerts:';
+					JSON.parse(result).root.bsa.forEach(function(bsaValue){
+						concatStr = concatStr +'\n'+bsaValue.description[0]
 					});
-				});
+				}else if(cmd === 'etd'){
+					var station = JSON.parse(result).root.station[0];				
+					concatStr = 'BART from '+station.name[0]+':';
+					station.etd.forEach(function(etdValue){
+						concatStr = concatStr+'\nTo: '+etdValue.destination[0]+ ' in ';
+						etdValue.estimate.forEach(function(estimateValue){
+							concatStr = concatStr+estimateValue.minutes[0]+' mins ';
+						});
+					});					
+				}else{
+					concatStr = 'Please send BART station Name.';
+				}
 				res.write(concatStr)
-				console.log(JSON.stringify(station[0]));				
 				//console.log("done...");
 				res.end();	
 			}).catch(function(err){
