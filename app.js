@@ -124,10 +124,15 @@ var server = http.createServer(function (req, res) {
 				//console.log("Partial body: " + body);
 			});
 			req.on('end', function () {
+				
 				console.log("Body: " + body);
-				var rp = getWitAi(body);
+				var bodyJSON=JSON.parse(body);
+				console.log("Body value out json: " + bodyJSON.message.text);
+
+				//access message out of json
+				var rp = getWitAi(bodyJSON.message.text);
 				rp.then(function(data){
-					//console.log('getWitAi data::'+ data);
+					console.log('getWitAi data::'+ data);
 					var witData = JSON.parse(data);
 					//available intents : shareLocation, getGreeting, planBART, getAlerts, getBART
 					if(witData.entities.intent){
@@ -193,7 +198,7 @@ function callUsingQuery(query, res){
 	var objectCreatedD = createObject(query);		
 	objectCreatedD.then(function(objectInput){				
 		var rp = getBart(objectInput);
-		//console.log(" called getBart -->");
+		console.log(" called getBart with location -->");
 
 		rp.then(function(data){
 			//console.log("createServer 0 :"+data);
