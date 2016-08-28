@@ -29,7 +29,7 @@ function findBARTStationN(inputname){
 		allowRegexp : true
 	});	
 	
-	//console.log('findBARTStationN:::'+JSON.stringify(barStnObjN.value));
+	console.log('findBARTStationN:::'+JSON.stringify(barStnObjN.value));
 	
 	return barStnObjN.value;
 }
@@ -59,11 +59,11 @@ function createObject(queryURI){
 	});		
 	
 	if(queryURI.origLat){
-		var rp = getGBartStation(queryURI.origLat, queryURI.origLng);
+		var rp = getGBartStation(queryURI.origLat, queryURI.origLong);
 		rp.then(function(data){
 			//console.log('getBartStation data::'+data);	
 			var gPData = JSON.parse(data);
-			//console.log('getBartStation data::'+gPData.results[0].name);	
+			console.log('getBartStation data::'+gPData.results[0].name);	
 			//console.log('getBartStation data::'+gPData.results[0].vicinity);	
 			//console.log('getBartStation data::'+gPData.results[0].geometry.location);	
 			var nameS =  gPData.results[0].name;
@@ -131,6 +131,15 @@ var server = http.createServer(function (req, res) {
 				var bodyJSON=JSON.parse(body);
 				console.log("Body value out json: " + bodyJSON.message.text);
 
+				// check if the request is coming with latitude
+				if(bodyJSON.location.latitude && bodyJSON.location.latitude!==""){
+				//console.log("Latitude: "+bodyJSON.location.latitude);
+				//console.log("Longitude: "+bodyJSON.location.longitude);
+				intentFunctions["shareLocation"](bodyJSON.location, res);
+
+				}
+				else{
+				
 				//access message out of json
 				var rp = getWitAi(bodyJSON.message.text);
 				rp.then(function(data){
@@ -152,7 +161,7 @@ var server = http.createServer(function (req, res) {
 					res.write('{"not sucess":"Hello World 5 POST"}');
 					res.end();
 				});			
-			});			
+			}});			
 		}else {        
 			res.write('{"sucess":"Hello World 3"}');
 			res.end();
@@ -190,10 +199,19 @@ intentFunctions.getBART = function(location, res)
 	};
 	callUsingQuery(query, res, 'etd');
 };
+
+// share location to work for departure stations
 intentFunctions.shareLocation = function(location, res)
 {
-	res.write('Hello User, can you please share your location.');
-	res.end();
+	var query = {
+		"cmd":"etd",
+		"origLat":location.latitude,
+		"origLong":location.longitude
+	};
+
+	//location.latitude coming from fb processor
+	callUsingQuery(query, res, 'etd');
+
 };
 
 function callUsingQuery(query, res, cmd){
