@@ -129,39 +129,38 @@ var server = http.createServer(function (req, res) {
 				
 				console.log("Body: " + body);
 				var bodyJSON=JSON.parse(body);
-				console.log("Body value out json: " + bodyJSON.message.text);
+				//console.log("Body value out json: " + bodyJSON.message.text);
 
 				// check if the request is coming with latitude
-				if(bodyJSON.location.latitude && bodyJSON.location.latitude!==""){
-				//console.log("Latitude: "+bodyJSON.location.latitude);
-				//console.log("Longitude: "+bodyJSON.location.longitude);
-				intentFunctions["shareLocation"](bodyJSON.location, res);
-
+				if(bodyJSON.location && bodyJSON.location.latitude){
+					//console.log("Latitude: "+bodyJSON.location.latitude);
+					//console.log("Longitude: "+bodyJSON.location.longitude);
+					intentFunctions["shareLocation"](bodyJSON.location, res);
 				}
-				else{
-				
+				else{				
 				//access message out of json
-				var rp = getWitAi(bodyJSON.message.text);
-				rp.then(function(data){
-					console.log('getWitAi data::'+ data);
-					var witData = JSON.parse(data);
-					//available intents : shareLocation, getGreeting, planBART, getAlerts, getBART
-					if(witData.entities.intent){
-						intentFunctions[witData.entities.intent[0].value](witData.entities.location, res);
-					}else if(witData.entities.location){
-						intentFunctions["getBART"](witData.entities.location, res);
-					}					
-					else{
-						res.write('{"not sucess":"Hello World 4 POST"}');
-						res.end();
-					}
+					var rp = getWitAi(bodyJSON.message.text);
+					rp.then(function(data){
+						console.log('getWitAi data::'+ data);
+						var witData = JSON.parse(data);
+						//available intents : shareLocation, getGreeting, planBART, getAlerts, getBART
+						if(witData.entities.intent){
+							intentFunctions[witData.entities.intent[0].value](witData.entities.location, res);
+						}else if(witData.entities.location){
+							intentFunctions["getBART"](witData.entities.location, res);
+						}					
+						else{
+							res.write('{"not sucess":"Hello World 4 POST"}');
+							res.end();
+						}
 					//console.log('getWitAi data::'+ witData.entities);							
-				}).catch(function(error){
-					console.log(error);
-					res.write('{"not sucess":"Hello World 5 POST"}');
-					res.end();
-				});			
-			}});			
+					}).catch(function(error){
+						console.log(error);
+						res.write('{"not sucess":"Hello World 5 POST"}');
+						res.end();
+					});			
+				}
+			});			
 		}else {        
 			res.write('{"sucess":"Hello World 3"}');
 			res.end();
