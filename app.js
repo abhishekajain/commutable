@@ -113,7 +113,7 @@ var server = http.createServer(function (req, res) {
 			//var queryURL = JSON.stringify(getURL.query);
 			//console.log('query:::'+JSON.stringify(getURL.query));
 			if(getURL.query.cmd){	
-				callUsingQuery(getURL.query, res, getURL.query.cmd);		
+				callUsingQuery(getURL.query, res);		
 			}else{
 				res.write('{"sucess":"Hello World 3"}');
 				res.end();
@@ -188,7 +188,7 @@ intentFunctions.getAlerts = function(location, res)
 	var query = {
 		"cmd":"bsa"
 	};
-	callUsingQuery(query, res, 'bsa');
+	callUsingQuery(query, res);
 };
 intentFunctions.getBART = function(location, res)
 {
@@ -196,7 +196,7 @@ intentFunctions.getBART = function(location, res)
 		"cmd":"etd",
 		"orig":location[0].value
 	};
-	callUsingQuery(query, res, 'etd');
+	callUsingQuery(query, res);
 };
 
 // share location to work for departure stations
@@ -209,11 +209,11 @@ intentFunctions.shareLocation = function(location, res)
 	};
 
 	//location.latitude coming from fb processor
-	callUsingQuery(query, res, 'etd');
+	callUsingQuery(query, res);
 
 };
 
-function callUsingQuery(query, res, cmd){
+function callUsingQuery(query, res){
 	var objectCreatedD = createObject(query);		
 	objectCreatedD.then(function(objectInput){				
 		var rp = getBart(objectInput);
@@ -227,12 +227,12 @@ function callUsingQuery(query, res, cmd){
 			promiseJSON.then(function(result){
 				console.log(result);
 				var concatStr = '';
-				if(cmd === 'bsa'){
+				if(query.cmd === 'bsa'){
 					concatStr = 'BART has follwing Alerts:';
 					JSON.parse(result).root.bsa.forEach(function(bsaValue){
 						concatStr = concatStr +'\n'+bsaValue.description[0]
 					});
-				}else if(cmd === 'etd'){
+				}else if(query.cmd === 'etd'){
 					var station = JSON.parse(result).root.station[0];				
 					concatStr = 'BART from '+station.name[0]+':';
 					station.etd.forEach(function(etdValue){
