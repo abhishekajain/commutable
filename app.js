@@ -4,13 +4,13 @@ var deferred = require('deferred');
 var requestPromise = require('request-promise');
 var url = require('url');
 var jsonQuery = require('json-query');
-var gAPIKey = "AIzaSyAOuStb60CNpbKnrrLV0ePIPOCwOCjdXxA";
+var gAPIKey = "";
+var wAK = '';
+var wAV =  '';
 
 var port = process.env.PORT || 3000;
 
 require("console-stamp")(console, '{ pattern : "ddd mmm dd yyyy HH:MM:ss" }');
-
-//e.g https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=37.702152,-121.935791&radius=500&types=train&name=BART&key=AIzaSyAOuStb60CNpbKnrrLV0ePIPOCwOCjdXxA
 
 
 var bartCMD = { "cmds":[
@@ -324,7 +324,7 @@ function getGBartStation(latitude, longitude){
 			radius : "500",
 			types : "transit_station",
 			name : "BART",
-			key : "AIzaSyAOuStb60CNpbKnrrLV0ePIPOCwOCjdXxA"		
+			key : gAPIKey		
 		},
 		headers: { "Accept": "application/json" } // request headers 
 	};
@@ -341,25 +341,14 @@ function getWitAi(query){
 		method : "GET",
 		uri : "/message",
 		baseUrl : "https://api.wit.ai/",	
-		qs : {	v: "20160815",
+		qs : {	v: wAV,
 				q: query},	 
 		headers: { "Accept": "application/json",
-				   "Authorization" :"Bearer PYIAP2SX4J4VEUNKXQDESBUONNAMNM4M"	
+				   "Authorization" :wAK	
 				 } // request headers 
 	};
 	//console.log('getWitAi options:'+JSON.stringify(options));
 	var rp = requestPromise(options);
-	/**rp.then(function(data){
-		//console.log('getWitAi data::'+ data);
-		var witData = JSON.parse(data);
-		if(witData.entities.location){
-			
-		}
-		if(witData.entities.intent){
-			
-		}
-		//console.log('getWitAi data::'+ witData.entities);							
-	});	**/
 	return rp;
 	
 }
